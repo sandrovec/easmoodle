@@ -42,14 +42,14 @@ def chatbot():
             courses = response.json()
             if courses:  # Si el alumno tiene cursos, recomendar el primero
                 recommended_course = courses[0]['fullname']  # Ejemplo de recomendación
-                return jsonify({"message": f"Te recomiendo estudiar el curso: {recommended_course}"})
+                return jsonify({"message": f"Te recomiendo estudiar el curso: {recommended_course}"}), 200
             else:
-                return jsonify({"message": "Parece que no estás inscrito en ningún curso aún."})
+                return jsonify({"message": "Parece que no estás inscrito en ningún curso aún."}), 200
         else:
-            return jsonify({"message": "Lo siento, no pude obtener los cursos en este momento."})
+            return jsonify({"message": "Lo siento, no pude obtener los cursos en este momento."}), 500
 
     # Si la entrada no se entiende, una respuesta por defecto
-    return jsonify({"message": "Lo siento, no entendí tu mensaje. ¿En qué puedo ayudarte?"})
+    return jsonify({"message": "Lo siento, no entendí tu mensaje. ¿En qué puedo ayudarte?"}), 200
 
 # Ruta para obtener cursos del usuario directamente
 @app.route('/get_courses', methods=['GET'])
@@ -63,4 +63,3 @@ def get_courses_endpoint():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-
