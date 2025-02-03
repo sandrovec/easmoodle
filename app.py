@@ -1,7 +1,11 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS  # Importar CORS
 import requests
 
 app = Flask(__name__)
+
+# Configuración de CORS para permitir solicitudes desde tu dominio
+CORS(app, origins="https://escueladeartesonoras.com")  # Permite solicitudes desde tu dominio
 
 # Configuración de la API de Moodle
 MOODLE_URL = "https://escueladeartesonoras.com/moodle/webservice/rest/server.php"
@@ -63,3 +67,4 @@ def get_courses_endpoint():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
