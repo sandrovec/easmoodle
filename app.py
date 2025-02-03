@@ -1,22 +1,14 @@
 from flask import Flask, jsonify, request
 import requests
-import os
 
 app = Flask(__name__)
 
 # Configuración de la API de Moodle
 MOODLE_URL = "https://escueladeartesonoras.com/moodle/webservice/rest/server.php"
-TOKEN = os.getenv("MOODLE_TOKEN")  # El token se obtiene de una variable de entorno
+TOKEN = "2373eab4985d0366690868436e053e1f"
 
-@app.route('/get_courses', methods=['GET'])
-def get_courses():
-    # Recibimos el ID del alumno desde la URL de la solicitud
-    user_id = request.args.get('user_id')
-
-    if not user_id:
-        return jsonify({"error": "User ID is required"}), 400
-
-    # Parámetros para obtener los cursos del alumno
+# Función para obtener los cursos del usuario
+def get_courses(user_id):
     params = {
         'wstoken': TOKEN,
         'wsfunction': 'core_enrol_get_users_courses',
@@ -24,7 +16,6 @@ def get_courses():
         'userid': user_id
     }
 
-    # Realiza la solicitud a la API de Moodle
     response = requests.get(MOODLE_URL, params=params)
 
     if response.status_code == 200:
@@ -32,6 +23,44 @@ def get_courses():
     else:
         return jsonify({"error": "No se pudo obtener los cursos"}), 500
 
+# Ruta para interactuar con el chatbot
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    # Recibimos la entrada del usuario
+    user_input = request.json.get('user_input')
+    user_id = request.json.get('user_id')  # ID del usuario desde la solicitud
+
+    if not user_input or not user_id:
+        return jsonify({"error": "User input and user ID are required"}), 400
+
+    # Si el usuario pregunta por un curso, mostramos recomendaciones
+    if 'curso' in user_input.lower():
+        # Obtener los cursos del usuario
+        response = get_courses(user_id)
+
+        if response.status_code == 200:
+            courses = response.json()
+            if courses:  # Si el alumno tiene cursos, recomendar el primero
+                recommended_course = courses[0]['fullname']  # Ejemplo de recomendación
+                return jsonify({"message": f"Te recomiendo estudiar el curso: {recommended_course}"})
+            else:
+                return jsonify({"message": "Parece que no estás inscrito en ningún curso aún."})
+        else:
+            return jsonify({"message": "Lo siento, no pude obtener los cursos en este momento."})
+
+    # Si la entrada no se entiende, una respuesta por defecto
+    return jsonify({"message": "Lo siento, no entendí tu mensaje. ¿En qué puedo ayudarte?"})
+
+# Ruta para obtener cursos del usuario directamente
+@app.route('/get_courses', methods=['GET'])
+def get_courses_endpoint():
+    user_id = request.args.get('user_id')
+
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    return get_courses(user_id)
+
 if __name__ == '__main__':
-    # Inicia la aplicación en el puerto 5000
     app.run(debug=True, host='0.0.0.0', port=5000)
+
